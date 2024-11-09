@@ -124,7 +124,6 @@ namespace TarkovVR.Source.Player.VRManager
                 RightHand.transform.parent = VRGlobals.camHolder.transform.parent;
                 MenuPatches.vrUiInteracter = RightHand.AddComponent<VRUIInteracter>();
                 pointer = RightHand.AddComponent<LaserPointer>();
-                pointer.color = Color.cyan;
 
             }
             if (!LeftHand)

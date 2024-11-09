@@ -14,9 +14,7 @@ namespace TarkovVR.Source.Misc
         public SteamVR_Action_Boolean interactWithUI = SteamVR_Input.GetBooleanAction("InteractUI");
 
         public bool active = true;
-        public Color color;
-        public float thickness = 0.002f;
-        public Color clickColor = Color.green;
+        public float thickness = 0.001f;
         public GameObject holder;
         public GameObject pointer;
         bool isActive = false;
@@ -69,7 +67,7 @@ namespace TarkovVR.Source.Misc
                 }
             }
             Material newMaterial = new Material(Shader.Find("Unlit/Color"));
-            newMaterial.SetColor("_Color", color);
+            newMaterial.SetColor("_Color", Color.white);
             pointer.GetComponent<MeshRenderer>().material = newMaterial;
         }
 
@@ -146,15 +144,15 @@ namespace TarkovVR.Source.Misc
                 OnPointerClick(argsClick);
             }
 
-            if (interactWithUI != null && interactWithUI.GetState(pose.inputSource))
+            if (SteamVR_Actions._default.RightTrigger.axis > 0.5 || SteamVR_Actions._default.ButtonA.GetState(SteamVR_Input_Sources.Any))
             {
                 pointer.transform.localScale = new Vector3(thickness * 5f, thickness * 5f, dist);
-                pointer.GetComponent<MeshRenderer>().material.color = clickColor;
+                pointer.GetComponent<MeshRenderer>().material.color = Color.cyan;
             }
             else
             {
                 pointer.transform.localScale = new Vector3(thickness, thickness, dist);
-                pointer.GetComponent<MeshRenderer>().material.color = color;
+                pointer.GetComponent<MeshRenderer>().material.color = Color.white;
             }
             pointer.transform.localPosition = new Vector3(0f, 0f, dist / 2f);
         }
