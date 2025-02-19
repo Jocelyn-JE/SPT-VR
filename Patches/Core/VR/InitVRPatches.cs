@@ -9,6 +9,7 @@ using TarkovVR.Source.Misc;
 using TarkovVR.Source.Player.Interactions;
 using TarkovVR.Source.Player.VR;
 using TarkovVR.Source.Player.VRManager;
+using TarkovVR.Source.Settings;
 using TarkovVR.Source.Weapons;
 using UnityEngine;
 using Valve.VR;
@@ -67,8 +68,18 @@ namespace TarkovVR.Patches.Core.VR
                     collider.isTrigger = true;
 
                     VRGlobals.camHolder.layer = 7;
-                    VRGlobals.menuVRManager.enabled = false;
-                    VRGlobals.menuOpen = false;
+                    if (!ModSupport.InstalledMods.FIKAInstalled)
+                    {
+                        VRGlobals.menuVRManager.enabled = false;
+                        VRGlobals.menuOpen = false;
+                    }
+                    else {
+                        VRGlobals.vrPlayer.enabled = false;
+                        VRGlobals.camRoot.transform.position = new Vector3(0, -999.8f, -0.5f);
+                        VRGlobals.vrOffsetter.transform.localPosition = Camera.main.transform.localPosition * -1;
+                        VRGlobals.menuOpen = true;
+                        VRGlobals.menuVRManager.OnEnable();
+                    }
                     if (UIPatches.quickSlotUi == null)
                     {
                         GameObject quickSlotHolder = new GameObject("quickSlotUi");
@@ -92,7 +103,7 @@ namespace TarkovVR.Patches.Core.VR
                 VRGlobals.backHolster.parent = VRGlobals.camHolder.transform;
                 VRGlobals.backCollider = VRGlobals.backHolster.gameObject.AddComponent<BoxCollider>();
                 VRGlobals.backHolster.localScale = new Vector3(0.2f, 0.2f, 0.2f);
-                VRGlobals.backHolster.localPosition = new Vector3(0.2f, -0.1f, -0.2f);
+                VRGlobals.backHolster.localPosition = (VRSettings.GetLeftHandedMode()) ? new Vector3(-0.2f, -0.1f, -0.2f) : new Vector3(0.2f, -0.1f, -0.2f);
                 VRGlobals.backCollider.isTrigger = true;
                 VRGlobals.backHolster.gameObject.layer = 3;
 
@@ -100,7 +111,7 @@ namespace TarkovVR.Patches.Core.VR
                 VRGlobals.backpackCollider.parent = VRGlobals.camHolder.transform;
                 VRGlobals.backpackCollider.gameObject.AddComponent<BoxCollider>().isTrigger = true;
                 VRGlobals.backpackCollider.localScale = new Vector3(0.2f, 0.2f, 0.2f);
-                VRGlobals.backpackCollider.localPosition = new Vector3(-0.2f, -0.1f, -0.2f);
+                VRGlobals.backpackCollider.localPosition = (VRSettings.GetLeftHandedMode()) ? new Vector3(0.2f, -0.1f, -0.2f) : new Vector3(-0.2f, -0.1f, -0.2f);
                 VRGlobals.backpackCollider.gameObject.layer = 3;
 
                 VRGlobals.sidearmHolster = new GameObject("sidearmHolsterCollider").transform;
@@ -159,7 +170,7 @@ namespace TarkovVR.Patches.Core.VR
                 var methodName = method.Name;
 
                 // Check for bot-specific methods
-                if (declaringType.Contains("EFT.BotSpawner") || declaringType.Contains("GClass732") && methodName.Contains("ActivateBot"))
+                if (declaringType.Contains("EFT.BotSpawner") || declaringType.Contains("GClass794") && methodName.Contains("ActivateBot"))
                 {
                     isBotPlayer = true;
                     break;
@@ -178,10 +189,16 @@ namespace TarkovVR.Patches.Core.VR
             if (__instance.transform.parent.parent.FindChild("weapon_holster1"))
                 __instance.transform.parent.parent.FindChild("weapon_holster1").gameObject.active = false;
 
-            if (__instance.transform.parent.parent.GetComponent<IKManager>() == null)
+            if (__instance.transform.parent.parent.GetComponent<IKManager>() == null) { 
                 VRGlobals.ikManager = __instance.transform.parent.parent.gameObject.AddComponent<IKManager>();
+                if (ModSupport.InstalledMods.FIKAInstalled) {
+                    VRGlobals.ikManager.enabled = false;
+                    VRGlobals.camRoot.transform.position = new Vector3(0, -999.8f, -0.5f);
+                }
+            }
 
             if (__instance.name == "Base HumanLCollarbone") {
+                VRGlobals.ikManager.leftArmIk = __instance.transform.GetComponent<LimbIK>();
                 leftWrist = __instance.transform.FindChildRecursive("Base HumanLForearm3");
                 if (leftWrist != null && leftWrist.GetComponent<TwistRelax>())
                     leftWrist.GetComponent<TwistRelax>().weight = 3;
@@ -197,6 +214,9 @@ namespace TarkovVR.Patches.Core.VR
             }
             if (__instance.name == "Base HumanRCollarbone")
             {
+                VRGlobals.ikManager.rightArmIk = __instance.transform.GetComponent<LimbIK>();
+                if (VRSettings.GetLeftHandedMode())
+                    VRGlobals.ikManager.rightArmIk.transform.parent.localScale = new Vector3(-1, 1, 1);
                 IInputHandler baseHandler;
                 VRInputManager.inputHandlers.TryGetValue(EFT.InputSystem.ECommand.LeftStanceToggle, out baseHandler);
                 if (baseHandler != null)
@@ -251,7 +271,6 @@ namespace TarkovVR.Patches.Core.VR
             Camera mainCam = __instance.GetComponent<Camera>();
             if (mainCam.name == "FPS Camera")
             {
-                Plugin.MyLog.LogWarning("\n\nSetting camera \n\n");
                 GameObject uiCamHolder = new GameObject("uiCam");
                 uiCamHolder.transform.parent = __instance.transform;
                 uiCamHolder.transform.localRotation = Quaternion.identity;
@@ -264,7 +283,7 @@ namespace TarkovVR.Patches.Core.VR
                 mainCam.transform.parent = VRGlobals.vrOffsetter.transform;
                 //mainCam.cullingMask = -1;
                 mainCam.nearClipPlane = VRGlobals.NEAR_CLIP_PLANE;
-                mainCam.farClipPlane = 1000f;
+                mainCam.farClipPlane = 5000f;
                 mainCam.gameObject.AddComponent<SteamVR_TrackedObject>();
                 mainCam.useOcclusionCulling = false;
                 if (VRGlobals.vrPlayer) { 

@@ -1,4 +1,5 @@
 ﻿using EFT.UI;
+using EFT.Visual;
 using TarkovVR.Source.Player.Interactions;
 using TarkovVR.Source.Player.VR;
 using TarkovVR.Source.Player.VRManager;
@@ -36,6 +37,8 @@ namespace TarkovVR
         public static VROpticController vrOpticController;
         public static HandsInteractionController handsInteractionController;
         public static Vector3 grenadeOffset = new Vector3(22.5f,0,0);
+        public static Vector3 test = new Vector3(0.035f, 0.04f, -0.02f);
+        public static Vector3 testRot;
         public static float randomMultiplier = 1;
         public static bool menuOpen = false;
         public static bool inGame = false;
@@ -51,6 +54,11 @@ namespace TarkovVR
         public static Transform scope;
         public static IKManager ikManager;
 
+        public static SkinnedMeshRenderer handsOnlyModel;
+        public static SkinnedMeshRenderer origArmsModel;
+        public static SkinnedMeshRenderer legsModel;
+        public static AssetBundle handsBundle;
+
         public static GameObject weaponHolder;
         public static GameObject oldWeaponHolder;
 
@@ -61,5 +69,6 @@ namespace TarkovVR
         public static int quickSlot = -1;
 
         public static bool blockRightJoystick = false;
+        public static bool blockLeftJoystick = false;
     }
 }
